@@ -7,7 +7,8 @@ import '../elements/BlockButtonWidget.dart';
 import '../helpers/app_config.dart' as config;
 import '../helpers/helper.dart';
 import '../repository/user_repository.dart' as userRepo;
-
+import 'package:flutter_signin_button/flutter_signin_button.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 class LoginWidget extends StatefulWidget {
   @override
   _LoginWidgetState createState() => _LoginWidgetState();
@@ -26,7 +27,27 @@ class _LoginWidgetState extends StateMVC<LoginWidget> {
       Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
     }
   }
+  void loginGoogle() async {
+    GoogleSignIn _googleSignIn = GoogleSignIn(
+      scopes: [
+        'email',
+        // you can add extras if you require
+      ],
+    );
 
+    _googleSignIn.signIn().then((GoogleSignInAccount acc) async {
+      GoogleSignInAuthentication auth = await acc.authentication;
+      print(acc.id);
+      print(acc.email);
+      print(acc.displayName);
+      print(acc.photoUrl);
+
+      acc.authentication.then((GoogleSignInAuthentication auth) async {
+        print(auth.idToken);
+        print(auth.accessToken);
+      });
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -140,6 +161,20 @@ class _LoginWidgetState extends StateMVC<LoginWidget> {
                         textColor: Theme.of(context).hintColor,
                         child: Text(S.of(context).skip),
                         padding: EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                      ),
+                      SignInButton(
+                        Buttons.GoogleDark,
+                        text: "Sign up with Google",
+                        onPressed: () {
+                          loginGoogle();
+                        },
+                      ),
+                      SignInButton(
+                        Buttons.Facebook,
+                        text: "Sign up with Google",
+                        onPressed: () {
+                          // loginGoogle();
+                        },
                       ),
 //                      SizedBox(height: 10),
                     ],

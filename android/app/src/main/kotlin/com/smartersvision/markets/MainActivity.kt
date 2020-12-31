@@ -1,4 +1,4 @@
-package com.smartersvision.markets
+package com.noisri.restaurant
 
 import io.flutter.embedding.android.FlutterActivity;
 
