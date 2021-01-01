@@ -139,21 +139,21 @@ class _SignUpWidgetState extends StateMVC<SignUpWidget> {
                         },
                       ),
                       SizedBox(height: 25),
-//                      FlatButton(
-//                        onPressed: () {
-//                          Navigator.of(context).pushNamed('/MobileVerification');
-//                        },
-//                        padding: EdgeInsets.symmetric(vertical: 14),
-//                        color: Theme.of(context).accentColor.withOpacity(0.1),
-//                        shape: StadiumBorder(),
-//                        child: Text(
-//                          'Register with Google',
-//                          textAlign: TextAlign.start,
-//                          style: TextStyle(
-//                            color: Theme.of(context).accentColor,
-//                          ),
-//                        ),
-//                      ),
+                     FlatButton(
+                       onPressed: () {
+                         Navigator.of(context).pushNamed('/MobileVerification');
+                       },
+                       padding: EdgeInsets.symmetric(vertical: 14),
+                       color: Theme.of(context).accentColor.withOpacity(0.1),
+                       shape: StadiumBorder(),
+                       child: Text(
+                         'Register with Google',
+                         textAlign: TextAlign.start,
+                         style: TextStyle(
+                           color: Theme.of(context).accentColor,
+                         ),
+                       ),
+                     ),
                     ],
                   ),
                 ),

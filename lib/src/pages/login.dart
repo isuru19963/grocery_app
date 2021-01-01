@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:markets/src/Test/test.dart';
 import 'package:mvc_pattern/mvc_pattern.dart';
 
 import '../../generated/l10n.dart';
@@ -9,6 +10,17 @@ import '../helpers/helper.dart';
 import '../repository/user_repository.dart' as userRepo;
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
+import 'package:flutter/cupertino.dart';
+import 'package:global_configuration/global_configuration.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'dart:convert';
+import 'dart:io';
+import '../models/user.dart';
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['profile', 'email']);
 class LoginWidget extends StatefulWidget {
   @override
   _LoginWidgetState createState() => _LoginWidgetState();
@@ -16,7 +28,7 @@ class LoginWidget extends StatefulWidget {
 
 class _LoginWidgetState extends StateMVC<LoginWidget> {
   UserController _con;
-
+  ValueNotifier<User> currentUser = new ValueNotifier(User());
   _LoginWidgetState() : super(UserController()) {
     _con = controller;
   }
@@ -26,11 +38,49 @@ class _LoginWidgetState extends StateMVC<LoginWidget> {
     if (userRepo.currentUser.value.apiToken != null) {
       Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
     }
+    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account){
+      setState(() {
+        // _currentUser = account;
+      });
+    });
+  }
+  void loginFacebook() async {
+    final facebookLogin = FacebookLogin();
+    final facebookLoginResult = await facebookLogin.logIn(['email']);
+
+    print(facebookLoginResult.accessToken);
+    print(facebookLoginResult.accessToken.token);
+    print(facebookLoginResult.accessToken.expires);
+    print(facebookLoginResult.accessToken.permissions);
+    print(facebookLoginResult.accessToken.userId);
+    print(facebookLoginResult.accessToken.isValid());
+
+    print(facebookLoginResult.errorMessage);
+    print(facebookLoginResult.status);
+
+    final token = facebookLoginResult.accessToken.token;
+
+    /// for profile details also use the below code
+    final graphResponse = await http.get(
+        'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=$token');
+    final profile = json.decode(graphResponse.body);
+    print(profile);
+    /*
+    from profile you will get the below params
+    {
+     "name": "Iiro Krankka",
+     "first_name": "Iiro",
+     "last_name": "Krankka",
+     "email": "iiro.krankka\u0040gmail.com",
+     "id": "<user id here>"
+    }
+   */
   }
   void loginGoogle() async {
     GoogleSignIn _googleSignIn = GoogleSignIn(
       scopes: [
         'email',
+        'profile'
         // you can add extras if you require
       ],
     );
@@ -43,11 +93,42 @@ class _LoginWidgetState extends StateMVC<LoginWidget> {
       print(acc.photoUrl);
 
       acc.authentication.then((GoogleSignInAuthentication auth) async {
-        print(auth.idToken);
-        print(auth.accessToken);
+
+        final String url = '${GlobalConfiguration().getValue('api_base_url')}register';
+        final client = new http.Client();
+        var data={
+          "email": acc.email,
+          "name": acc.displayName,
+          "password": 'password',
+        };
+        print(url);
+        final response = await client.post(
+          url,
+          headers: {HttpHeaders.contentTypeHeader: 'application/json'},
+          body: json.encode(data),
+        );
+print(json.decode(response.body)['data']);
+        if (response.statusCode == 200) {
+          if (json.decode(response.body)['data'] != null) {
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            await prefs.setString('current_user', json.encode(json.decode((response.body))['data']));
+            print(prefs.getString('current_user'));
+            Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
+          }
+        }
+        else if(response.statusCode == 401)
+          { SharedPreferences prefs = await SharedPreferences.getInstance();
+          print(prefs.getString('current_user'));
+            Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
+          }else {
+          Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
+
+        }
+        Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
       });
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -155,7 +236,13 @@ class _LoginWidgetState extends StateMVC<LoginWidget> {
                       SizedBox(height: 15),
                       FlatButton(
                         onPressed: () {
-                          Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
+                          // Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => SignInDemo()),
+                          );
+
                         },
                         shape: StadiumBorder(),
                         textColor: Theme.of(context).hintColor,
@@ -165,15 +252,15 @@ class _LoginWidgetState extends StateMVC<LoginWidget> {
                       SignInButton(
                         Buttons.GoogleDark,
                         text: "Sign up with Google",
-                        onPressed: () {
+                        onPressed: () async{
                           loginGoogle();
                         },
                       ),
                       SignInButton(
                         Buttons.Facebook,
                         text: "Sign up with Google",
-                        onPressed: () {
-                          // loginGoogle();
+                        onPressed: () async {
+                          loginFacebook();
                         },
                       ),
 //                      SizedBox(height: 10),

@@ -1,0 +1,8 @@
+Variant: profileUnitTest
+Config: debug
+Store: C:\Users\DELL\.android\debug.keystore
+Alias: AndroidDebugKey
+MD5: C5:04:CD:90:A8:F2:7D:B6:90:7D:F1:36:A4:55:3C:54
+SHA1: BB:99:A6:9C:1F:90:02:4F:B3:E3:2E:01:0D:C7:B9:E9:7B:73:A1:8A
+SHA-256: 7B:DB:60:D6:71:DF:1C:CF:EE:E8:F6:2E:13:A5:99:0F:9C:7F:B0:D1:47:60:C4:60:41:74:F6:89:BC:75:B6:7A
+Valid until: Wednesday, September 14, 2050

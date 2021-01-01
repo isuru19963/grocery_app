@@ -52,8 +52,8 @@ class SplashScreenState extends StateMVC<SplashScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Image.asset(
-                'assets/img/logo.png',
-                width: 150,
+                'assets/images/logo.png',
+                width: 250,
                 fit: BoxFit.cover,
               ),
               SizedBox(height: 50),

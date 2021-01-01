@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "980874642781-icqub92oltde0a7gtr69meldmlprmh9t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.noisri.restaurant",
+            "certificate_hash": "bb99a69c1f90024fb3e32e010dc7b9e97b73a18a"
+          }
+        },
+        {
           "client_id": "980874642781-o9o09h92duhjo9ohjuocohj0dullsdjq.apps.googleusercontent.com",
           "client_type": 3
         }

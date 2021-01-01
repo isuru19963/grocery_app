@@ -11,7 +11,9 @@ import '../models/address.dart';
 import '../models/credit_card.dart';
 import '../models/user.dart';
 import '../repository/user_repository.dart' as userRepo;
+import 'package:google_sign_in/google_sign_in.dart';
 
+GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['profile', 'email']);
 ValueNotifier<User> currentUser = new ValueNotifier(User());
 
 Future<User> login(User user) async {
@@ -67,6 +69,7 @@ Future<void> logout() async {
   currentUser.value = new User();
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.remove('current_user');
+  _googleSignIn.disconnect();
 }
 
 void setCurrentUser(jsonString) async {
@@ -80,6 +83,7 @@ Future<void> setCreditCard(CreditCard creditCard) async {
   if (creditCard != null) {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('credit_card', json.encode(creditCard.toMap()));
+
   }
 }
 
