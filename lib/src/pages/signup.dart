@@ -6,7 +6,17 @@ import '../controllers/user_controller.dart';
 import '../elements/BlockButtonWidget.dart';
 import '../helpers/app_config.dart' as config;
 import '../helpers/helper.dart';
-
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:global_configuration/global_configuration.dart';
+import 'dart:convert';
+import 'dart:io';
+import '../models/user.dart';
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+import 'package:markets/src/repository/user_repository.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_signin_button/flutter_signin_button.dart';
+GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['profile', 'email']);
 class SignUpWidget extends StatefulWidget {
   @override
   _SignUpWidgetState createState() => _SignUpWidgetState();
@@ -17,6 +27,188 @@ class _SignUpWidgetState extends StateMVC<SignUpWidget> {
 
   _SignUpWidgetState() : super(UserController()) {
     _con = controller;
+  }
+  @override
+  void initState() {
+    super.initState();
+
+    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
+
+    });
+  }
+
+
+  void loginFacebook() async {
+    final facebookLogin = FacebookLogin();
+    final facebookLoginResult = await facebookLogin.logIn(['email']);
+
+    print(facebookLoginResult.accessToken);
+    print(facebookLoginResult.accessToken.token);
+    print(facebookLoginResult.accessToken.expires);
+    print(facebookLoginResult.accessToken.permissions);
+    print(facebookLoginResult.accessToken.userId);
+    print(facebookLoginResult.accessToken.isValid());
+
+    print(facebookLoginResult.errorMessage);
+    print(facebookLoginResult.status);
+
+    final token = facebookLoginResult.accessToken.token;
+
+    /// for profile details also use the below code
+    final graphResponse = await http.get(
+        'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=$token');
+    final profile = json.decode(graphResponse.body);
+    print(profile['email']);
+
+    final String url =
+        '${GlobalConfiguration().getValue('api_base_url')}userValid';
+    final client = new http.Client();
+    var data = {
+      "email": profile['email'],
+    };
+    final loginResponse = await client.post(
+      url,
+      headers: {HttpHeaders.contentTypeHeader: 'application/json'},
+      body: json.encode(data),
+    );
+    if (json.decode(loginResponse.body)['data']['code'] == null) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('current_user',json.encode(json.decode((loginResponse.body))['data']));
+      setState(() {
+        currentUser.value = User.fromJSON(json.decode(loginResponse.body)['data']);
+      });
+      var currents=await prefs.getString('current_user');
+      print(currentUser.value.apiToken);
+      if(currentUser.value.apiToken!=null){
+        await Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
+      }
+
+
+    } else if (json.decode(loginResponse.body)['data']['code'] == 404) {
+      final String url ='${GlobalConfiguration().getValue('api_base_url')}register';
+      final client = new http.Client();
+      var data = {
+        "email": profile['email'],
+        "name": profile['name'],
+        "password": 'password',
+      };
+      final response = await client.post(
+        url,
+        headers: {HttpHeaders.contentTypeHeader: 'application/json'},
+        body: json.encode(data),
+      );
+      print(json.decode(response.body)['data']);
+      if (response.statusCode == 200) {
+        if (json.decode(response.body)['data'] != null) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('current_user',json.encode(json.decode((response.body))['data']));
+          setState(() {
+            currentUser.value = User.fromJSON(json.decode(response.body)['data']);
+          });
+          print(currentUser.value.apiToken);
+          if(currentUser.value.apiToken!=null){
+            await   Navigator.of(context)
+                .pushReplacementNamed('/Pages', arguments: 2);
+          }
+
+        }
+      } else if (response.statusCode == 401) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        print(prefs.getString('current_user'));
+        // Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
+      }
+
+    }
+    /*
+    from profile you will get the below params
+    {
+     "name": "Iiro Krankka",
+     "first_name": "Iiro",
+     "last_name": "Krankka",
+     "email": "iiro.krankka\u0040gmail.com",
+     "id": "<user id here>"
+    }
+   */
+  }
+
+  void loginGoogle() async {
+    GoogleSignIn _googleSignIn = GoogleSignIn(
+      scopes: [
+        'email',
+        'profile'
+        // you can add extras if you require
+      ],
+    );
+
+    _googleSignIn.signIn().then((GoogleSignInAccount acc) async {
+      GoogleSignInAuthentication auth = await acc.authentication;
+      print(acc.id);
+      print(acc.email);
+      print(acc.displayName);
+      print(acc.photoUrl);
+
+      acc.authentication.then((GoogleSignInAuthentication auth) async {
+        final String url =
+            '${GlobalConfiguration().getValue('api_base_url')}userValid';
+        final client = new http.Client();
+        var data = {
+          "email": acc.email,
+        };
+        final loginResponse = await client.post(
+          url,
+          headers: {HttpHeaders.contentTypeHeader: 'application/json'},
+          body: json.encode(data),
+        );
+        print(json.decode(loginResponse.body));
+        if (json.decode(loginResponse.body)['data']['code'] == null) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('current_user',json.encode(json.decode((loginResponse.body))['data']));
+          setState(() {
+            currentUser.value = User.fromJSON(json.decode(loginResponse.body)['data']);
+          });
+          print(currentUser.value.apiToken);
+          if(currentUser.value.apiToken!=null){
+            await   Navigator.of(context)
+                .pushReplacementNamed('/Pages', arguments: 2);
+          }
+
+
+        } else if (json.decode(loginResponse.body)['data']['code'] == 404) {
+          final String url ='${GlobalConfiguration().getValue('api_base_url')}register';
+          final client = new http.Client();
+          var data = {
+            "email": acc.email,
+            "name": acc.displayName,
+            "password": 'password',
+          };
+          final response = await client.post(
+            url,
+            headers: {HttpHeaders.contentTypeHeader: 'application/json'},
+            body: json.encode(data),
+          );
+          print(json.decode(response.body)['data']);
+          if (response.statusCode == 200) {
+            if (json.decode(response.body)['data'] != null) {
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              await prefs.setString('current_user',json.encode(json.decode((response.body))['data']));
+              setState(() {
+                currentUser.value = User.fromJSON(json.decode(response.body)['data']);
+              });
+              print(currentUser.value.apiToken);
+              if(currentUser.value.apiToken!=null){
+                await   Navigator.of(context)
+                    .pushReplacementNamed('/Pages', arguments: 2);
+              }
+            }
+          } else if (response.statusCode == 401) {
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            print(prefs.getString('current_user'));
+            Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
+          }
+
+        }
+      });
+    });
   }
   @override
   Widget build(BuildContext context) {
@@ -139,21 +331,36 @@ class _SignUpWidgetState extends StateMVC<SignUpWidget> {
                         },
                       ),
                       SizedBox(height: 25),
-                     FlatButton(
-                       onPressed: () {
-                         Navigator.of(context).pushNamed('/MobileVerification');
-                       },
-                       padding: EdgeInsets.symmetric(vertical: 14),
-                       color: Theme.of(context).accentColor.withOpacity(0.1),
-                       shape: StadiumBorder(),
-                       child: Text(
-                         'Register with Google',
-                         textAlign: TextAlign.start,
-                         style: TextStyle(
-                           color: Theme.of(context).accentColor,
-                         ),
-                       ),
-                     ),
+                  FlatButton(
+                    onPressed: () {
+                      Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
+
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //       builder: (context) => SignInDemo()),
+                      // );
+                    },
+                    shape: StadiumBorder(),
+                    textColor: Theme.of(context).hintColor,
+                    child: Text(S.of(context).skip),
+                    padding:
+                    EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                  ),
+                      SignInButton(
+                        Buttons.GoogleDark,
+                        text: "Sign up with Google",
+                        onPressed: () async {
+                          loginGoogle();
+                        },
+                      ),
+                      SignInButton(
+                        Buttons.Facebook,
+                        text: "Sign up with Facebook",
+                        onPressed: () async {
+                          loginFacebook();
+                        },
+                      ),
                     ],
                   ),
                 ),

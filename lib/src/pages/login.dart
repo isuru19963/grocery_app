@@ -20,7 +20,10 @@ import 'dart:convert';
 import 'dart:io';
 import '../models/user.dart';
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+import 'package:markets/src/repository/user_repository.dart';
+
 GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['profile', 'email']);
+final facebookLogin = FacebookLogin();
 class LoginWidget extends StatefulWidget {
   @override
   _LoginWidgetState createState() => _LoginWidgetState();
@@ -28,7 +31,9 @@ class LoginWidget extends StatefulWidget {
 
 class _LoginWidgetState extends StateMVC<LoginWidget> {
   UserController _con;
-  ValueNotifier<User> currentUser = new ValueNotifier(User());
+
+  TextEditingController email_cntrl = new TextEditingController();
+  TextEditingController password_cntrl = new TextEditingController();
   _LoginWidgetState() : super(UserController()) {
     _con = controller;
   }
@@ -38,15 +43,25 @@ class _LoginWidgetState extends StateMVC<LoginWidget> {
     if (userRepo.currentUser.value.apiToken != null) {
       Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
     }
-    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account){
-      setState(() {
-        // _currentUser = account;
-      });
+    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
+
     });
+
   }
+
   void loginFacebook() async {
-    final facebookLogin = FacebookLogin();
+
     final facebookLoginResult = await facebookLogin.logIn(['email']);
+    if (facebookLoginResult.status == FacebookLoginStatus.loggedIn) {
+      print('awa');
+      FacebookAccessToken myToken = facebookLoginResult.accessToken;
+      // AuthCredential credential =
+      // FacebookAuthProvider.getCredential(accessToken: myToken.token);
+      //
+      // var user = await FirebaseAuth.instance.signInWithCredential(credential);
+    }else{
+      print(facebookLoginResult.errorMessage);
+    }
 
     print(facebookLoginResult.accessToken);
     print(facebookLoginResult.accessToken.token);
@@ -64,7 +79,67 @@ class _LoginWidgetState extends StateMVC<LoginWidget> {
     final graphResponse = await http.get(
         'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=$token');
     final profile = json.decode(graphResponse.body);
-    print(profile);
+    print(profile['email']);
+
+    final String url =
+        '${GlobalConfiguration().getValue('api_base_url')}userValid';
+    final client = new http.Client();
+    var data = {
+      "email": profile['email'],
+    };
+    final loginResponse = await client.post(
+      url,
+      headers: {HttpHeaders.contentTypeHeader: 'application/json'},
+      body: json.encode(data),
+    );
+    if (json.decode(loginResponse.body)['data']['code'] == null) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('current_user',json.encode(json.decode((loginResponse.body))['data']));
+      setState(() {
+        currentUser.value = User.fromJSON(json.decode(loginResponse.body)['data']);
+      });
+      var currents=await prefs.getString('current_user');
+      print(currentUser.value.apiToken);
+      if(currentUser.value.apiToken!=null){
+        await Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
+      }
+
+
+    } else if (json.decode(loginResponse.body)['data']['code'] == 404) {
+      final String url ='${GlobalConfiguration().getValue('api_base_url')}register';
+      final client = new http.Client();
+      var data = {
+        "email": profile['email'],
+        "name": profile['name'],
+        "password": 'password',
+      };
+      final response = await client.post(
+        url,
+        headers: {HttpHeaders.contentTypeHeader: 'application/json'},
+        body: json.encode(data),
+      );
+      print(json.decode(response.body)['data']);
+      if (response.statusCode == 200) {
+        if (json.decode(response.body)['data'] != null) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('current_user',json.encode(json.decode((response.body))['data']));
+          setState(() {
+            currentUser.value = User.fromJSON(json.decode(response.body)['data']);
+          });
+          print(currentUser.value.apiToken);
+          if(currentUser.value.apiToken!=null){
+            await   Navigator.of(context)
+                .pushReplacementNamed('/Pages', arguments: 2);
+          }
+
+        }
+      } else if (response.statusCode == 401) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        print(prefs.getString('current_user'));
+        // Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
+      }
+
+    }
     /*
     from profile you will get the below params
     {
@@ -76,6 +151,7 @@ class _LoginWidgetState extends StateMVC<LoginWidget> {
     }
    */
   }
+
   void loginGoogle() async {
     GoogleSignIn _googleSignIn = GoogleSignIn(
       scopes: [
@@ -93,38 +169,65 @@ class _LoginWidgetState extends StateMVC<LoginWidget> {
       print(acc.photoUrl);
 
       acc.authentication.then((GoogleSignInAuthentication auth) async {
-
-        final String url = '${GlobalConfiguration().getValue('api_base_url')}register';
+        final String url =
+            '${GlobalConfiguration().getValue('api_base_url')}userValid';
         final client = new http.Client();
-        var data={
+        var data = {
           "email": acc.email,
-          "name": acc.displayName,
-          "password": 'password',
         };
-        print(url);
-        final response = await client.post(
+        final loginResponse = await client.post(
           url,
           headers: {HttpHeaders.contentTypeHeader: 'application/json'},
           body: json.encode(data),
         );
-print(json.decode(response.body)['data']);
-        if (response.statusCode == 200) {
-          if (json.decode(response.body)['data'] != null) {
+        print(json.decode(loginResponse.body));
+        if (json.decode(loginResponse.body)['data']['code'] == null) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('current_user',json.encode(json.decode((loginResponse.body))['data']));
+          setState(() {
+            currentUser.value = User.fromJSON(json.decode(loginResponse.body)['data']);
+          });
+          print(currentUser.value.apiToken);
+          if(currentUser.value.apiToken!=null){
+            await   Navigator.of(context)
+                .pushReplacementNamed('/Pages', arguments: 2);
+          }
+
+
+        } else if (json.decode(loginResponse.body)['data']['code'] == 404) {
+          final String url ='${GlobalConfiguration().getValue('api_base_url')}register';
+          final client = new http.Client();
+          var data = {
+            "email": acc.email,
+            "name": acc.displayName,
+            "password": 'password',
+          };
+          final response = await client.post(
+            url,
+            headers: {HttpHeaders.contentTypeHeader: 'application/json'},
+            body: json.encode(data),
+          );
+          print(json.decode(response.body)['data']);
+          if (response.statusCode == 200) {
+            if (json.decode(response.body)['data'] != null) {
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              await prefs.setString('current_user',json.encode(json.decode((response.body))['data']));
+              setState(() {
+                currentUser.value = User.fromJSON(json.decode(response.body)['data']);
+              });
+              print(currentUser.value.apiToken);
+              if(currentUser.value.apiToken!=null){
+                await   Navigator.of(context)
+                    .pushReplacementNamed('/Pages', arguments: 2);
+              }
+            }
+          } else if (response.statusCode == 401) {
             SharedPreferences prefs = await SharedPreferences.getInstance();
-            await prefs.setString('current_user', json.encode(json.decode((response.body))['data']));
             print(prefs.getString('current_user'));
             Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
           }
-        }
-        else if(response.statusCode == 401)
-          { SharedPreferences prefs = await SharedPreferences.getInstance();
-          print(prefs.getString('current_user'));
-            Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
-          }else {
-          Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
 
         }
-        Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
       });
     });
   }
@@ -154,23 +257,30 @@ print(json.decode(response.body)['data']);
                 height: config.App(context).appHeight(37),
                 child: Text(
                   S.of(context).lets_start_with_login,
-                  style: Theme.of(context).textTheme.headline2.merge(TextStyle(color: Theme.of(context).primaryColor)),
+                  style: Theme.of(context)
+                      .textTheme
+                      .headline2
+                      .merge(TextStyle(color: Theme.of(context).primaryColor)),
                 ),
               ),
             ),
             Positioned(
               top: config.App(context).appHeight(37) - 50,
               child: Container(
-                decoration: BoxDecoration(color: Theme.of(context).primaryColor, borderRadius: BorderRadius.all(Radius.circular(10)), boxShadow: [
-                  BoxShadow(
-                    blurRadius: 50,
-                    color: Theme.of(context).hintColor.withOpacity(0.2),
-                  )
-                ]),
+                decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 50,
+                        color: Theme.of(context).hintColor.withOpacity(0.2),
+                      )
+                    ]),
                 margin: EdgeInsets.symmetric(
                   horizontal: 20,
                 ),
-                padding: EdgeInsets.only(top: 50, right: 27, left: 27, bottom: 20),
+                padding:
+                    EdgeInsets.only(top: 50, right: 27, left: 27, bottom: 20),
                 width: config.App(context).appWidth(88),
 //              height: config.App(context).appHeight(55),
                 child: Form(
@@ -180,34 +290,62 @@ print(json.decode(response.body)['data']);
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       TextFormField(
+                        controller: email_cntrl,
                         keyboardType: TextInputType.emailAddress,
                         onSaved: (input) => _con.user.email = input,
-                        validator: (input) => !input.contains('@') ? S.of(context).should_be_a_valid_email : null,
+                        validator: (input) => !input.contains('@')
+                            ? S.of(context).should_be_a_valid_email
+                            : null,
                         decoration: InputDecoration(
                           labelText: S.of(context).email,
-                          labelStyle: TextStyle(color: Theme.of(context).accentColor),
+                          labelStyle:
+                              TextStyle(color: Theme.of(context).accentColor),
                           contentPadding: EdgeInsets.all(12),
                           hintText: 'johndoe@gmail.com',
-                          hintStyle: TextStyle(color: Theme.of(context).focusColor.withOpacity(0.7)),
-                          prefixIcon: Icon(Icons.alternate_email, color: Theme.of(context).accentColor),
-                          border: OutlineInputBorder(borderSide: BorderSide(color: Theme.of(context).focusColor.withOpacity(0.2))),
-                          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Theme.of(context).focusColor.withOpacity(0.5))),
-                          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Theme.of(context).focusColor.withOpacity(0.2))),
+                          hintStyle: TextStyle(
+                              color: Theme.of(context)
+                                  .focusColor
+                                  .withOpacity(0.7)),
+                          prefixIcon: Icon(Icons.alternate_email,
+                              color: Theme.of(context).accentColor),
+                          border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context)
+                                      .focusColor
+                                      .withOpacity(0.2))),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context)
+                                      .focusColor
+                                      .withOpacity(0.5))),
+                          enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context)
+                                      .focusColor
+                                      .withOpacity(0.2))),
                         ),
                       ),
                       SizedBox(height: 30),
                       TextFormField(
+                        controller: password_cntrl,
                         keyboardType: TextInputType.text,
                         onSaved: (input) => _con.user.password = input,
-                        validator: (input) => input.length < 3 ? S.of(context).should_be_more_than_3_characters : null,
+                        validator: (input) => input.length < 3
+                            ? S.of(context).should_be_more_than_3_characters
+                            : null,
                         obscureText: _con.hidePassword,
                         decoration: InputDecoration(
                           labelText: S.of(context).password,
-                          labelStyle: TextStyle(color: Theme.of(context).accentColor),
+                          labelStyle:
+                              TextStyle(color: Theme.of(context).accentColor),
                           contentPadding: EdgeInsets.all(12),
                           hintText: '••••••••••••',
-                          hintStyle: TextStyle(color: Theme.of(context).focusColor.withOpacity(0.7)),
-                          prefixIcon: Icon(Icons.lock_outline, color: Theme.of(context).accentColor),
+                          hintStyle: TextStyle(
+                              color: Theme.of(context)
+                                  .focusColor
+                                  .withOpacity(0.7)),
+                          prefixIcon: Icon(Icons.lock_outline,
+                              color: Theme.of(context).accentColor),
                           suffixIcon: IconButton(
                             onPressed: () {
                               setState(() {
@@ -215,18 +353,33 @@ print(json.decode(response.body)['data']);
                               });
                             },
                             color: Theme.of(context).focusColor,
-                            icon: Icon(_con.hidePassword ? Icons.visibility : Icons.visibility_off),
+                            icon: Icon(_con.hidePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off),
                           ),
-                          border: OutlineInputBorder(borderSide: BorderSide(color: Theme.of(context).focusColor.withOpacity(0.2))),
-                          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Theme.of(context).focusColor.withOpacity(0.5))),
-                          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Theme.of(context).focusColor.withOpacity(0.2))),
+                          border: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context)
+                                      .focusColor
+                                      .withOpacity(0.2))),
+                          focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context)
+                                      .focusColor
+                                      .withOpacity(0.5))),
+                          enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Theme.of(context)
+                                      .focusColor
+                                      .withOpacity(0.2))),
                         ),
                       ),
                       SizedBox(height: 30),
                       BlockButtonWidget(
                         text: Text(
                           S.of(context).login,
-                          style: TextStyle(color: Theme.of(context).primaryColor),
+                          style:
+                              TextStyle(color: Theme.of(context).primaryColor),
                         ),
                         color: Theme.of(context).accentColor,
                         onPressed: () {
@@ -235,30 +388,31 @@ print(json.decode(response.body)['data']);
                       ),
                       SizedBox(height: 15),
                       FlatButton(
-                        onPressed: () {
-                          // Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
+                       onPressed: () {
+                          Navigator.of(context).pushReplacementNamed('/Pages', arguments: 2);
 
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => SignInDemo()),
-                          );
-
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //       builder: (context) => SignInDemo()),
+                          // );
                         },
                         shape: StadiumBorder(),
                         textColor: Theme.of(context).hintColor,
                         child: Text(S.of(context).skip),
-                        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 30, vertical: 14),
                       ),
                       SignInButton(
                         Buttons.GoogleDark,
                         text: "Sign up with Google",
-                        onPressed: () async{
+                        onPressed: () async {
                           loginGoogle();
                         },
                       ),
                       SignInButton(
                         Buttons.Facebook,
-                        text: "Sign up with Google",
+                        text: "Sign up with Facebook",
                         onPressed: () async {
                           loginFacebook();
                         },
@@ -275,7 +429,8 @@ print(json.decode(response.body)['data']);
                 children: <Widget>[
                   FlatButton(
                     onPressed: () {
-                      Navigator.of(context).pushReplacementNamed('/ForgetPassword');
+                      Navigator.of(context)
+                          .pushReplacementNamed('/ForgetPassword');
                     },
                     textColor: Theme.of(context).hintColor,
                     child: Text(S.of(context).i_forgot_password),

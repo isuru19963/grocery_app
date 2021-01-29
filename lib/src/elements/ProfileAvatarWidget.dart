@@ -67,12 +67,12 @@ class ProfileAvatarWidget extends StatelessWidget {
               ],
             ),
           ),
+          // Text(
+          //   user.name,
+          //   style: Theme.of(context).textTheme.headline5.merge(TextStyle(color: Theme.of(context).primaryColor)),
+          // ),
           Text(
-            user.name,
-            style: Theme.of(context).textTheme.headline5.merge(TextStyle(color: Theme.of(context).primaryColor)),
-          ),
-          Text(
-            user.address,
+            user.address!=null?user.address:'',
             style: Theme.of(context).textTheme.caption.merge(TextStyle(color: Theme.of(context).primaryColor)),
           ),
         ],

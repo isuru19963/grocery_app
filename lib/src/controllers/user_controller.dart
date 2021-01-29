@@ -57,6 +57,7 @@ class UserController extends ControllerMVC {
     if (loginFormKey.currentState.validate()) {
       loginFormKey.currentState.save();
       Overlay.of(context).insert(loader);
+      print(user);
       repository.register(user).then((value) {
         if (value != null && value.apiToken != null) {
           Navigator.of(scaffoldKey.currentContext).pushReplacementNamed('/Pages', arguments: 2);

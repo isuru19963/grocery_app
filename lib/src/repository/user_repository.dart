@@ -12,10 +12,10 @@ import '../models/credit_card.dart';
 import '../models/user.dart';
 import '../repository/user_repository.dart' as userRepo;
 import 'package:google_sign_in/google_sign_in.dart';
-
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['profile', 'email']);
 ValueNotifier<User> currentUser = new ValueNotifier(User());
-
+ final FacebookLogin facebookSignIn = new FacebookLogin();
 Future<User> login(User user) async {
   final String url = '${GlobalConfiguration().getValue('api_base_url')}login';
   final client = new http.Client();
@@ -70,6 +70,8 @@ Future<void> logout() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.remove('current_user');
   _googleSignIn.disconnect();
+  await facebookSignIn.logOut();
+
 }
 
 void setCurrentUser(jsonString) async {

@@ -1,20 +1,29 @@
 {
   "project_info": {
-    "project_number": "980874642781",
-    "project_id": "noisriapp",
-    "storage_bucket": "noisriapp.appspot.com"
+    "project_number": "855036346137",
+    "firebase_url": "https://noisrirestaurant-default-rtdb.firebaseio.com",
+    "project_id": "noisrirestaurant",
+    "storage_bucket": "noisrirestaurant.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:980874642781:android:e5d16a1b3ed5b4c54b54b4",
+        "mobilesdk_app_id": "1:855036346137:android:4911f4a2bd14bc4e804f88",
         "android_client_info": {
           "package_name": "com.noisri.restaurant"
         }
       },
       "oauth_client": [
         {
-          "client_id": "980874642781-icqub92oltde0a7gtr69meldmlprmh9t.apps.googleusercontent.com",
+          "client_id": "855036346137-b86b05viopqnm62uohtja4va5jhl01b2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.noisri.restaurant",
+            "certificate_hash": "717e5d006239b740165f9b4e8da3e66c2409dfcf"
+          }
+        },
+        {
+          "client_id": "855036346137-qd5ue8kl5s4gj4cljqkqkdr3a54m26mj.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.noisri.restaurant",
@@ -22,20 +31,28 @@
           }
         },
         {
-          "client_id": "980874642781-o9o09h92duhjo9ohjuocohj0dullsdjq.apps.googleusercontent.com",
+          "client_id": "855036346137-vtmfrd8vtf7jt0a1tos1v2r3as04vhpe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.noisri.restaurant",
+            "certificate_hash": "9bc1ceefe1fdddb77cffbfd5774a0e09210a4992"
+          }
+        },
+        {
+          "client_id": "855036346137-kd4sof3464n55emskudq8dms3si6fej8.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAjuFu95Uhr31rcHEuvRBizj44xtyPQmmI"
+          "current_key": "AIzaSyC5IE_Vo5a2_QtByk2Gyz13WjexvhzmR-k"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "980874642781-o9o09h92duhjo9ohjuocohj0dullsdjq.apps.googleusercontent.com",
+              "client_id": "855036346137-kd4sof3464n55emskudq8dms3si6fej8.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

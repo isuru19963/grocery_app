@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:markets/src/elements/MainCaregoriesCarouselWidget.dart';
 import 'package:mvc_pattern/mvc_pattern.dart';
 
 import '../../generated/l10n.dart';
@@ -186,6 +187,27 @@ class _HomeWidgetState extends StateMVC<HomeWidget> {
                   );
                 case 'trending_week':
                   return ProductsCarouselWidget(productsList: _con.trendingProducts, heroTag: 'home_product_carousel');
+
+                case 'main_categories_heading':
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.symmetric(vertical: 0),
+                      leading: Icon(
+                        Icons.category,
+                        color: Theme.of(context).hintColor,
+                      ),
+                      title: Text('Shop By Category',
+                        style: Theme.of(context).textTheme.headline4,
+                      ),
+                    ),
+                  );
+                case 'main_categories':
+                  return MainCategoriesCarouselWidget(
+                    maincategories: _con.maincategories,
+                  );
+
                 case 'categories_heading':
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),

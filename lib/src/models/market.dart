@@ -47,6 +47,7 @@ class Market {
       users = jsonMap['users'] != null && (jsonMap['users'] as List).length > 0
           ? List.from(jsonMap['users']).map((element) => User.fromJSON(element)).toSet().toList()
           : [];
+      print(distance);
     } catch (e) {
       id = '';
       name = '';

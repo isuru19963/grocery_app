@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "855036346137",
+    "project_id": "noisrirestaurant",
+    "storage_bucket": "noisrirestaurant.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:855036346137:android:32cb7c49c02f7f08804f88",
+        "android_client_info": {
+          "package_name": "com.NoiSri.restaurant"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "855036346137-kd4sof3464n55emskudq8dms3si6fej8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5IE_Vo5a2_QtByk2Gyz13WjexvhzmR-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "855036346137-kd4sof3464n55emskudq8dms3si6fej8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

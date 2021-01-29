@@ -31,7 +31,7 @@ class CategoriesCarouselItemWidget extends StatelessWidget {
               decoration: BoxDecoration(
                   color: Theme.of(context).primaryColor,
                   borderRadius: BorderRadius.all(Radius.circular(5)),
-                  boxShadow: [BoxShadow(color: Theme.of(context).focusColor.withOpacity(0.2), offset: Offset(0, 2), blurRadius: 7.0)]),
+                  boxShadow: [BoxShadow(color: Theme.of(context).focusColor.withOpacity(0.2), offset: Offset(0, 2), blurRadius: 9.0)]),
               child: Padding(
                 padding: const EdgeInsets.all(15),
                 child: category.image.url.toLowerCase().endsWith('.svg')
@@ -51,7 +51,7 @@ class CategoriesCarouselItemWidget extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: 5),
+          SizedBox(height: 10),
           Container(
             margin: EdgeInsetsDirectional.only(start: this.marginLeft, end: 20),
             child: Text(

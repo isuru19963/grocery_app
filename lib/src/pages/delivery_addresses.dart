@@ -55,10 +55,10 @@ class _DeliveryAddressesWidgetState extends StateMVC<DeliveryAddressesWidget> {
                   context,
                   setting.value.googleMapsKey,
                   initialCenter: LatLng(deliveryAddress.value?.latitude ?? 0, deliveryAddress.value?.longitude ?? 0),
-                  //automaticallyAnimateToCurrentLocation: true,
-                  //mapStylePath: 'assets/mapStyle.json',
+                  automaticallyAnimateToCurrentLocation: true,
+                  mapStylePath: 'assets/mapStyle.json',
                   myLocationButtonEnabled: true,
-                  //resultCardAlignment: Alignment.bottomCenter,
+                  resultCardAlignment: Alignment.bottomCenter,
                 );
                 _con.addAddress(new Address.fromJSON({
                   'address': result.address,
@@ -66,7 +66,7 @@ class _DeliveryAddressesWidgetState extends StateMVC<DeliveryAddressesWidget> {
                   'longitude': result.latLng.longitude,
                 }));
                 print("result = $result");
-                //setState(() => _pickedLocation = result);
+                // setState(() => _pickedLocation = result);
               },
               backgroundColor: Theme.of(context).accentColor,
               child: Icon(

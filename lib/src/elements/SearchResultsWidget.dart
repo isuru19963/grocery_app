@@ -61,9 +61,9 @@ class _SearchResultWidgetState extends StateMVC<SearchResultWidget> {
           Padding(
             padding: const EdgeInsets.all(20),
             child: TextField(
-              onSubmitted: (text) async {
+              onChanged: (text) async {
                 await _con.refreshSearch(text);
-                _con.saveSearch(text);
+                // _con.saveSearch(text);
               },
               autofocus: true,
               decoration: InputDecoration(
@@ -77,6 +77,7 @@ class _SearchResultWidgetState extends StateMVC<SearchResultWidget> {
               ),
             ),
           ),
+
           _con.markets.isEmpty && _con.products.isEmpty
               ? CircularLoadingWidget(height: 288)
               : Expanded(

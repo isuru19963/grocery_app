@@ -2524,13 +2524,13 @@ class AppLocalizationDelegate extends LocalizationsDelegate<S> {
       Locale.fromSubtags(languageCode: 'en'),
       Locale.fromSubtags(languageCode: 'ar'),
       Locale.fromSubtags(languageCode: 'es'),
-      Locale.fromSubtags(languageCode: 'sl'),
-      Locale.fromSubtags(languageCode: 'itl'),
       Locale.fromSubtags(languageCode: 'fr'),
       Locale.fromSubtags(languageCode: 'fr', countryCode: 'CA'),
       Locale.fromSubtags(languageCode: 'in'),
+      Locale.fromSubtags(languageCode: 'italy'),
       Locale.fromSubtags(languageCode: 'ko'),
       Locale.fromSubtags(languageCode: 'pt', countryCode: 'BR'),
+      Locale.fromSubtags(languageCode: 'sl'),
     ];
   }
 
